@@ -8,15 +8,19 @@ load_data <- function(file = 'data/tele2.csv') {
   data$date <- with(data, str_c(date, time, sep=' '))
   data$date <- dmy_hms(data$date)
   data <- data[, !(names(data) %in% c('minutes', 'time'))]
-  data <- data %.%
+  data <- data %>%
     mutate(day = floor_date(date, 'day'),
+           
+           # Need new var with type of call recipient (our network or foreign)
            network = ifelse(
              str_detect(type, perl('Исходящий на (МТС$|Мегафон$|Билайн$)')),
              "чужой", ifelse(
-               str_detect(type, 'Исходящий на своего'), "свой", "прочее"))) %.%
+               str_detect(type, 'Исходящий на своего'), "свой", "прочее"))) %>%
     mutate(minutes = ceiling_mins(seconds, 3),
            bytes = get_bytes(number)) %>%
     group_by(day, network) %>%
+    
+    # Cumsum of minutes of calls to foreign networks is requiried 
     mutate(mcumsum = cumsum(minutes))
   data}
 
@@ -28,11 +32,14 @@ isout <- function(call) {
 ceiling_mins <- function(x, limit) {
   ifelse(x > limit, ceiling(x/60), 0)}
 
+# Add parentheses to R-expressions of tariffs elements
 add_arg <- function(arg, fun) {
   if(length(arg) > 1) return(unlist(lapply(arg, add_arg, fun)))
   paste(fun, "(", arg, ")", sep="")
 }
 
+# How much is does cost element of calling history in condition
+# of a tariff plan
 el_pay <- function(row_numb, data, plan, options) {
   x <- data[row_numb,, drop=F]
   match_rule <- function(cond, r) {
@@ -49,6 +56,8 @@ el_pay <- function(row_numb, data, plan, options) {
   pay <- eval(parse(text=plan$rate[x_rule])[[1]], envir=x)
   return(pay)
 }
+
+# Randomzing of phone numbers
 
 rnd_phone <- function(phone) {
   if(length(phone) > 1) return(unlist(lapply(phone, rnd_phone)))
@@ -95,6 +104,8 @@ get_plans <- function(plans) {
     do(planset = rbind(., roaming))
           
 }
+
+# Stuff for bootstrap
 
 get_pays <- function(data, plan) {
   unlist(lapply(seq_len(dim(data)[1]), 

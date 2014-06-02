@@ -12,6 +12,9 @@ source('r/functions.r')
 
 data <- load_data()
 plans <- load_plans()
+
+# Convert data.frame with tariff plan data
+# to list of tariffs
 plans <- get_plans(plans)
 
 
