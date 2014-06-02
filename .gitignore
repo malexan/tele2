@@ -1,0 +1,7 @@
+.Rhistory*
+.Rdata
+*.Rproj
+.Rproj.user
+# Personal call history data
+data/[Tt]ele2*
+
