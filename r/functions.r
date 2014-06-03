@@ -88,8 +88,8 @@ load_plans <- function(file = "data/plan.csv") {
   plan$cond <- str_replace_all(plan$cond, '\\n', '')
   plan$rate <- str_replace_all(plan$rate, '\\n', '')
   plan$rate <- ifelse(plan$plantype != 'option', 
-                      str_c("modelsum= ", plan$rate),
-                      str_c("modelpay= ", plan$rate))
+                      str_c("modelsum = ", plan$rate),
+                      str_c("modelpay = ", plan$rate))
   plan
 }
 
@@ -122,4 +122,16 @@ get_boot <- function(d, indices) {
 get_boot_bill <- function(plan, data, ...) {
   pays_orig <- get_pays(data = data, plan = plan)
   boot(data = pays_orig, statistic = get_boot, ...)
+}
+
+# Combinations of options
+
+opts_combs <- function(optsn) {
+  opts_combn <- 2 ^ optsn
+  lapply(seq_len(opts_combn), function(x) {
+    x <- intToBits(x)
+    x <- as.integer(x)
+    x <- x[seq_len(optsn)]
+    as.logical(x)
+  })
 }
