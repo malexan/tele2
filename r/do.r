@@ -27,7 +27,8 @@ options <- plans %>%
 # to list of tariffs
 plans <- get_plans(plans)
 
-
+# lapply(opts_combs(dim(options)[1]), function(comb) {
+#   p})
 
 
 rez_list <- lapply(plans$planset, get_boot_bill, data = data, R = 5000)

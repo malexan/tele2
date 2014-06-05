@@ -53,6 +53,16 @@ el_pay <- function(row_numb, data, plan, options) {
   if(sum(x_rule, na.rm=T) > 1) stop(paste('Row ', row_numb, 
                                  " matches more than one condition", sep=""))
   
+  if(!missing(options) & dim(optins)[1] > 0) {
+    opt_rule <- match_rule(options$cond, x)
+    if(sum(opt_rule, na.rm=T) > 1) 
+      stop(paste('Row ', row_numb, 
+                 " matches more than one option", sep=""))
+    
+    if(sum(opt_rule, na.rm=T) == 1) 
+      return(eval(parse(text=options$rate[opt_rule])[[1]], envir=x))
+  }
+  
   pay <- eval(parse(text=plan$rate[x_rule])[[1]], envir=x)
   return(pay)
 }
@@ -107,11 +117,12 @@ get_plans <- function(plans) {
 
 # Stuff for bootstrap
 
-get_pays <- function(data, plan) {
+get_pays <- function(data, plan, options) {
   unlist(lapply(seq_len(dim(data)[1]), 
-                    el_pay, 
-                    data = data, 
-                    plan = plan))
+                el_pay, 
+                data = data, 
+                plan = plan,
+                options = options))
 }
 
 get_boot <- function(d, indices) {
